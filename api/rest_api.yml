@@ -1,0 +1,720 @@
+openapi: "3.0.0"
+info:
+  version: "1.0.0"
+  title: "System Design VK"
+servers:
+  - url: "http://api.vk.com/v1"
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+        first_name:
+          type: string
+        last_name:
+          type: string
+        email:
+          type: string
+        date_of_birth:
+          type: string
+          format: date
+        status:
+          type: integer
+        verified:
+          type: boolean
+    Media:
+      type: object
+      properties:
+        id:
+          type: string
+        media_type:
+          type: string
+          enum: [image, audio, video]
+        url:
+          type: string
+        alt_text:
+          type: string
+    Post:
+      type: object
+      properties:
+        id:
+          type: string
+        user_id:
+          type: string
+        text:
+          type: string
+        media:
+          $ref: '#/components/schemas/Media'
+        likes:
+          type: integer
+        comments:
+          type: integer
+        date_posted:
+          type: string
+          format: date-time
+    Message:
+      type: object
+      properties:
+        id:
+          type: string
+        chat_id:
+          type: string
+        user_id:
+          type: string
+        content:
+          type: string
+        media:
+          $ref: '#/components/schemas/Media'
+        date_sent:
+          type: string
+          format: date-time
+
+    Chat:
+      type: object
+      properties:
+        id:
+          type: string
+        messages:
+          type: array
+          items:
+            $ref: '#/components/schemas/Message'
+
+  parameters:
+    AuthHeader:
+      name: Authorization
+      in: header
+      required: true
+      schema:
+        type: string
+      description: Bearer token для авторизации
+    User:
+      name: user_id
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Уникальный id пользователя
+    Chat:
+      name: chat_id
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Уникальный id чата
+paths:
+  /users/friends:
+    parameters:
+      - $ref: '#/components/parameters/AuthHeader'
+    post:
+      summary: Добавить в друзья
+      tags:
+        - Друзья
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user_id:
+                  type: string
+                  description: ID пользователя, которого нужно добавить в друзья.
+      responses:
+        '200':
+          description: Успешная операция
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  message:
+                    type: string
+                    example: "Заявка в друзья отправлена"
+        '400':
+          description: Ошибка в параметрах запроса
+        '401':
+          description: Не авторизован
+    delete:
+      parameters:
+        - $ref: '#/components/parameters/AuthHeader'
+        - $ref: '#/components/parameters/User'
+      summary: Удалить из друзей
+      tags:
+        - Друзья
+      responses:
+        '200':
+          description: Успешная операция
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  message:
+                    type: string
+                    example: "Друг был удален"
+  /users/friends/{user_id}:
+    parameters:
+      - $ref: '#/components/parameters/AuthHeader'
+      - $ref: '#/components/parameters/User'
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+      - name: offset
+        in: query
+        required: false
+        schema:
+          type: integer
+    get:
+      summary: Просмотр друзей пользователя
+      tags:
+        - Друзья
+      responses:
+        '200':
+          description: Успешная операция
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  data:
+                    type: object
+                    properties:
+                      friends:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                              example: "123456"
+                            first_name:
+                              type: string
+                              example: "Павел"
+                            last_name:
+                              type: string
+                              example: "Дуров"
+                            status:
+                              type: integer
+                              example: 0
+                            verified:
+                              type: boolean
+                              example: true
+                            photo:
+                              type: string
+                              example: "url"
+                            list_id:
+                              type: integer
+                              format: int32
+                              example: 1
+  /users/{user_id}:
+    parameters:
+      - $ref: '#/components/parameters/AuthHeader'
+      - $ref: '#/components/parameters/User'
+    get:
+      summary: Просмотр анкеты пользователя
+      tags:
+        - Пользователи
+      responses:
+        '200':
+          description: Успешная операция
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                            example: "123456"
+                          first_name:
+                            type: string
+                            example: "Павел"
+                          last_name:
+                            type: string
+                            example: "Дуров"
+                          status:
+                            type: integer
+                            format: int32
+                            example: 1
+                          verified:
+                            type: boolean
+                            example: true
+                          photo:
+                            type: string
+                            example: "url"
+                          work:
+                            type: string
+                            example: "vk.com/link"
+                          city:
+                            type: string
+                            example: "Saint Petersburg"
+                          friend_count:
+                            type: integer
+                            format: int32
+                            example: 500
+                          post_count:
+                            type: integer
+                            format: int32
+                            example: 120
+                          bio:
+                            type: string
+                            example: "Основатель вк и телеграм"
+                          birthday:
+                            type: string
+                            format: date
+                            example: "1984-10-10"
+                          followers:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                name:
+                                  type: string
+                                  example: "John Doe"
+                                photo:
+                                  type: string
+                                  example: "url"
+                                bio:
+                                  type: string
+                                  example: "Software EngineerZ"
+                          subscriptions:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                name:
+                                  type: string
+                                  example: "Marie Roze"
+                                photo:
+                                  type: string
+                                  example: "url"
+                                bio:
+                                  type: string
+                                  example: "Software Engineer"
+                          education:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                school:
+                                  type: string
+                                  example: "Moscow High School"
+                                year:
+                                  type: integer
+                                  format: int32
+                                  example: 2010
+  /upload :
+    parameters:
+      - $ref: '#/components/parameters/AuthHeader'
+    post:
+      summary: Загрузка медиа файлов
+      tags:
+        - Посты
+      responses:
+        '200':
+          description: Успешная операция
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  id:
+                    type: string
+                    example: "1234_4235"
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                media:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                  description: Загрузка медиа
+  /post/create:
+    parameters:
+      - $ref: '#/components/parameters/AuthHeader'
+    post:
+      summary: Публикация нового поста
+      tags:
+        - Посты
+      responses:
+        '200':
+          description: Успешная операция
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  message:
+                    type: string
+                    example: "Post has been sent."
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                text:
+                  type: string
+                  description: Текст
+                images:
+                  type: array
+                  items:
+                    type: string
+                  description: Массив id с изображениями
+                  example:
+                    message: "1214125_124124"
+                videos:
+                  type: array
+                  items:
+                    type: string
+                  description: Массив id с видео
+                  example:
+                    message: "1214125_124124"
+                audio:
+                  type: array
+                  items:
+                    type: string
+                  description: Массив id с Аудио
+                  example:
+                    message: "1214125_124124"
+                map:
+                  type: string
+                  description: Геолокация
+  /feed:
+    parameters:
+      - $ref: '#/components/parameters/AuthHeader'
+    get:
+      summary: Просмотр домашней ленты
+      tags:
+        - Лента
+      responses:
+        '200':
+          description: Успешная операция
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        post_id:
+                          type: string
+                          example: "924859"
+                        author_id:
+                          type: string
+                          example: "124848"
+                        author_name:
+                          type: string
+                          example: "Павел Дуров"
+                        author_photo:
+                          type: string
+                          example: "url"
+                        post_text:
+                          type: string
+                          example: "Мой первый пост!"
+                        post_time:
+                          type: string
+                          format: date-time
+                          example: "2023-05-21T18:25:43-05:00"
+                        post_media:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              media_type:
+                                type: string
+                                example: "photo"
+                              media_id:
+                                type: string
+                                example: "media12345"
+                              media_url:
+                                type: string
+                                example: "url_to_media"
+                        likes:
+                          type: integer
+                          format: int32
+                          example: 120
+                        comments:
+                          type: integer
+                          format: int32
+                          example: 45
+                        shares:
+                          type: integer
+                          format: int32
+                          example: 30
+
+  /feed/{user_id}:
+    parameters:
+      - $ref: '#/components/parameters/AuthHeader'
+      - $ref: '#/components/parameters/User'
+    get:
+      summary: Просмотр ленты пользователя
+      tags:
+        - Лента
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        post_id:
+                          type: string
+                          example: "924859"
+                        author_id:
+                          type: string
+                          example: "124848"
+                        author_name:
+                          type: string
+                          example: "Павел Дуров"
+                        author_photo:
+                          type: string
+                          example: "url"
+                        post_text:
+                          type: string
+                          example: "Мой первый пост!"
+                        post_time:
+                          type: string
+                          format: date-time
+                          example: "2023-05-21T18:25:43-05:00"
+                        post_media:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              media_type:
+                                type: string
+                                example: "photo"
+                              media_id:
+                                type: string
+                                example: "14124_12424"
+                              media_url:
+                                type: string
+                                example: "url"
+                        likes:
+                          type: integer
+                          format: int32
+                          example: 120
+                        comments:
+                          type: integer
+                          format: int32
+                          example: 45
+                        shares:
+                          type: integer
+                          format: int32
+                          example: 30
+  /chats:
+    parameters:
+      - $ref: '#/components/parameters/AuthHeader'
+    get:
+      summary: Получение всех чатов и диалогов
+      tags:
+        - Сообщения
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        chat_id:
+                          type: string
+                          example: "124124"
+                        last_message:
+                          type: object
+                          properties:
+                            message_id:
+                              type: string
+                              example: "1241424"
+                            sender_id:
+                              type: string
+                              example: "12214124"
+                            sender_name:
+                              type: string
+                              example: "Павел Дуров"
+                            sender_photo:
+                              type: string
+                              example: "url"
+                            message_text:
+                              type: string
+                              example: "Я Паша"
+                            message_time:
+                              type: string
+                              format: date-time
+                              example: "2023-05-21T18:25:43-05:00"
+                            message_read:
+                              type: boolean
+                              example: true
+                        members:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              member_id:
+                                type: string
+                                example: "52435"
+                              member_name:
+                                type: string
+                                example: "Николай Дуров"
+                              member_photo:
+                                type: string
+                                example: "url"
+
+  /chats/{chat_id}:
+    parameters:
+      - $ref: '#/components/parameters/AuthHeader'
+      - name: chat_id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      summary: Получение и чтение диалога или чата
+      tags:
+        - Сообщения
+      responses:
+        '200':
+          description: Успешная операция
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  data:
+                    type: object
+                    properties:
+                      chat_id:
+                        type: string
+                        example: "25136"
+                      messages:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            message_id:
+                              type: string
+                              example: "124124"
+                            sender_id:
+                              type: string
+                              example: "125125"
+                            sender_name:
+                              type: string
+                              example: "Павел Дуров"
+                            sender_photo:
+                              type: string
+                              example: "url"
+                            message_text:
+                              type: string
+                              example: "Как дела?"
+                            message_time:
+                              type: string
+                              format: date-time
+                              example: "2023-05-21T18:25:43-05:00"
+                            message_read:
+                              type: boolean
+                              example: true
+
+  /chats/send/{chat_id}:
+    parameters:
+      - $ref: '#/components/parameters/AuthHeader'
+      - $ref: '#/components/parameters/Chat'
+    post:
+      summary: Отправка сообщения в диалог или чат
+      tags:
+        - Сообщения
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                text:
+                  type: string
+                  description: Текст
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  message_id:
+                    type: string
+                    example: "1234"
+                  chat_id:
+                    type: string
+                    example: "214"
+                  sender_id:
+                    type: string
+                    example: "124"
+                  message_text:
+                    type: string
+                    example: "Как дела?"
+                  message_time:
+                    type: string
+                    format: date-time
+                    example: "2023-05-21T18:25:43-05:00"
+
