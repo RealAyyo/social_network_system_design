@@ -1,10 +1,86 @@
 openapi: "3.0.0"
 info:
   version: "1.0.0"
-  title: "My API"
+  title: "System Design VK"
 servers:
   - url: "http://api.vk.com/v1"
 components:
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+        first_name:
+          type: string
+        last_name:
+          type: string
+        email:
+          type: string
+        date_of_birth:
+          type: string
+          format: date
+        status:
+          type: integer
+        verified:
+          type: boolean
+    Media:
+      type: object
+      properties:
+        id:
+          type: string
+        media_type:
+          type: string
+          enum: [image, audio, video]
+        url:
+          type: string
+        alt_text:
+          type: string
+    Post:
+      type: object
+      properties:
+        id:
+          type: string
+        user_id:
+          type: string
+        text:
+          type: string
+        media:
+          $ref: '#/components/schemas/Media'
+        likes:
+          type: integer
+        comments:
+          type: integer
+        date_posted:
+          type: string
+          format: date-time
+    Message:
+      type: object
+      properties:
+        id:
+          type: string
+        chat_id:
+          type: string
+        user_id:
+          type: string
+        content:
+          type: string
+        media:
+          $ref: '#/components/schemas/Media'
+        date_sent:
+          type: string
+          format: date-time
+
+    Chat:
+      type: object
+      properties:
+        id:
+          type: string
+        messages:
+          type: array
+          items:
+            $ref: '#/components/schemas/Message'
+
   parameters:
     AuthHeader:
       name: Authorization
@@ -64,6 +140,7 @@ paths:
           description: Не авторизован
     delete:
       parameters:
+        - $ref: '#/components/parameters/AuthHeader'
         - $ref: '#/components/parameters/User'
       summary: Удалить из друзей
       tags:
@@ -86,6 +163,16 @@ paths:
     parameters:
       - $ref: '#/components/parameters/AuthHeader'
       - $ref: '#/components/parameters/User'
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+      - name: offset
+        in: query
+        required: false
+        schema:
+          type: integer
     get:
       summary: Просмотр друзей пользователя
       tags:
@@ -630,3 +717,4 @@ paths:
                     type: string
                     format: date-time
                     example: "2023-05-21T18:25:43-05:00"
+
